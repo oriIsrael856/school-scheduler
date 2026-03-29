@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { TeacherPanel } from './components/TeacherPanel';
 import { SchedulerGrid } from './components/SchedulerGrid';
 import { useAppContext } from './store';
