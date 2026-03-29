@@ -31,6 +31,8 @@ type AppContextType = {
   getTeacherTotalHours: (teacherId: string) => number;
   setHomeroomTeacher: (classId: string, teacherId: string) => void;
   importLocalData: () => Promise<void>;
+  exportData: () => void;
+  importFromFile: (file: File) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -154,8 +156,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     alert('הנתונים יובאו לענן בהצלחה!');
   };
 
+  const exportData = () => {
+    const json = JSON.stringify(state, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `school-scheduler-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importFromFile = async (file: File) => {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as AppState;
+      if (!Array.isArray(parsed.teachers) || !Array.isArray(parsed.assignments)) {
+        alert('הקובץ אינו תקין.');
+        return;
+      }
+      const teacherCount = parsed.teachers.length;
+      const assignmentCount = parsed.assignments.length;
+      const confirmed = window.confirm(
+        `הקובץ מכיל:\n• ${teacherCount} מורות\n• ${assignmentCount} שיבוצים\n\nהייבוא יחליף את כל הנתונים הנוכחיים בענן.\nלהמשיך?`
+      );
+      if (!confirmed) return;
+      const docRef = doc(db, 'scheduler_data', MAIN_DOC_ID);
+      await setDoc(docRef, parsed);
+      alert('הנתונים יובאו בהצלחה!');
+    } catch {
+      alert('שגיאה בקריאת הקובץ. ודא שמדובר בקובץ JSON תקין.');
+    }
+  };
+
   return (
-    <AppContext.Provider value={{ state, hasLocalData, addTeacher, removeTeacher, setAssignment, removeAssignment, getTeacherTotalHours, setHomeroomTeacher, importLocalData }}>
+    <AppContext.Provider value={{ state, hasLocalData, addTeacher, removeTeacher, setAssignment, removeAssignment, getTeacherTotalHours, setHomeroomTeacher, importLocalData, exportData, importFromFile }}>
       {children}
     </AppContext.Provider>
   );

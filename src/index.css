@@ -57,14 +57,20 @@ body {
   gap: 12px;
 }
 
-.btn-import-local {
+.header-actions {
   margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-import-local {
   background: #fff7ed;
   border: 1px solid #fb923c;
   color: #c2410c;
   padding: 0.45rem 1rem;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -75,6 +81,40 @@ body {
   background: #ffedd5;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(251, 146, 60, 0.3);
+}
+
+.btn-export {
+  background: var(--primary-light);
+  border: 1px solid var(--primary);
+  color: var(--primary-hover);
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-export:hover {
+  background: #dde4ff;
+  transform: translateY(-1px);
+}
+
+.btn-import-file {
+  background: var(--success-light);
+  border: 1px solid var(--success);
+  color: #065f46;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-import-file:hover {
+  background: #a7f3d0;
+  transform: translateY(-1px);
 }
 
 @keyframes pulse-border {
