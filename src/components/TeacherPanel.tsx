@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../store';
+import { useAppContext, Teacher } from '../store';
+import { TeacherScheduleModal } from './TeacherScheduleModal';
 
 export const TeacherPanel: React.FC = () => {
   const { state, addTeacher, removeTeacher, getTeacherTotalHours } = useAppContext();
   const [newTeacherName, setNewTeacherName] = useState('');
   const [maxHours, setMaxHours] = useState(26);
+  const [search, setSearch] = useState('');
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,10 +17,18 @@ export const TeacherPanel: React.FC = () => {
     setMaxHours(26);
   };
 
+  const filteredTeachers = state.teachers.filter(t =>
+    t.name.includes(search.trim())
+  );
+
   return (
     <aside className="teacher-panel">
+      {selectedTeacher && (
+        <TeacherScheduleModal teacher={selectedTeacher} onClose={() => setSelectedTeacher(null)} />
+      )}
+
       <h2>מאגר מורים</h2>
-      
+
       <form onSubmit={handleAdd} className="add-teacher-form">
         <div className="form-group">
           <input
@@ -41,11 +52,23 @@ export const TeacherPanel: React.FC = () => {
         </div>
       </form>
 
+      <div className="teacher-search-wrapper">
+        <input
+          type="text"
+          placeholder="חפש מורה..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="teacher-search-input"
+        />
+      </div>
+
       <div className="teachers-list">
         {state.teachers.length === 0 ? (
           <p className="empty-state">אין מורים במערכת. הוסף מורה חדש כדי להתחיל.</p>
+        ) : filteredTeachers.length === 0 ? (
+          <p className="empty-state">לא נמצאו מורים תואמים.</p>
         ) : (
-          state.teachers.map(teacher => {
+          filteredTeachers.map(teacher => {
             const currentHours = getTeacherTotalHours(teacher.id);
             const percentage = Math.min(100, Math.round((currentHours / teacher.maxHours) * 100));
             const isOverLimit = currentHours > teacher.maxHours;
@@ -58,6 +81,13 @@ export const TeacherPanel: React.FC = () => {
                     <span className="hours-text">
                       {currentHours} / {teacher.maxHours} שעות
                     </span>
+                    <button
+                      onClick={() => setSelectedTeacher(teacher)}
+                      className="btn-icon btn-schedule"
+                      title="הצג מערכת שעות"
+                    >
+                      📋
+                    </button>
                     <button 
                       onClick={() => removeTeacher(teacher.id)}
                       className="btn-icon btn-danger"

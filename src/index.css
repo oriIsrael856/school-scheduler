@@ -173,6 +173,7 @@ button { cursor: pointer; font-weight: 600; border: none; }
 
 .btn-icon { background: transparent; padding: 4px; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
 .btn-icon:hover { background: var(--danger-light); color: var(--danger); }
+.btn-schedule:hover { background: var(--primary-light) !important; color: var(--primary) !important; }
 
 /* Teacher Panel */
 .teacher-panel {
@@ -186,7 +187,27 @@ button { cursor: pointer; font-weight: 600; border: none; }
   z-index: 5;
 }
 
-.add-teacher-form { margin-bottom: 2rem; }
+.teacher-search-wrapper {
+  margin-bottom: 1rem;
+}
+
+.teacher-search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  transition: all 0.2s;
+}
+
+.teacher-search-input:focus {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.add-teacher-form { margin-bottom: 1rem; }
 .add-teacher-form .form-group {
   display: flex;
   flex-direction: column;
@@ -429,6 +450,107 @@ th {
   border-radius: 12px;
   font-size: 0.9rem;
   display: inline-block;
+}
+
+/* Teacher Schedule Modal */
+.schedule-modal {
+  max-width: 520px;
+  width: 95%;
+  padding: 1.75rem;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.schedule-modal-title {
+  margin: 0 0 0.15rem 0;
+  font-size: 1.3rem;
+}
+
+.schedule-close-btn {
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.homeroom-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  background: var(--primary-light);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.homeroom-banner-label {
+  font-weight: 600;
+  color: var(--primary-hover);
+}
+
+.homeroom-badge {
+  background: var(--primary);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-y: auto;
+  font-size: 0.95rem;
+}
+
+.schedule-table th {
+  background: #f8fafc;
+  padding: 0.6rem 0.75rem;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border-color);
+  text-align: right;
+}
+
+.schedule-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.schedule-table tbody tr:hover {
+  background: var(--primary-light);
+}
+
+.schedule-class-cell {
+  font-weight: 700;
+  color: var(--primary-hover);
+}
+
+.schedule-hours-cell {
+  text-align: center;
+  font-weight: 600;
+}
+
+.schedule-total-row td {
+  background: #f8fafc;
+  font-weight: 700;
+  border-top: 2px solid var(--border-color);
+  padding: 0.65rem 0.75rem;
+}
+
+.over-limit-badge {
+  background: var(--danger) !important;
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
