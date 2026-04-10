@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext, Teacher } from '../store';
 import { TeacherScheduleModal } from './TeacherScheduleModal';
+import { ConstraintModal } from './ConstraintModal';
 import { DAYS } from '../constants';
 
 export const TeacherPanel: React.FC = () => {
@@ -9,6 +10,7 @@ export const TeacherPanel: React.FC = () => {
   const [maxHours, setMaxHours] = useState(26);
   const [search, setSearch] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [constraintTeacher, setConstraintTeacher] = useState<Teacher | null>(null);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +28,9 @@ export const TeacherPanel: React.FC = () => {
     <aside className="teacher-panel">
       {selectedTeacher && (
         <TeacherScheduleModal teacher={selectedTeacher} onClose={() => setSelectedTeacher(null)} />
+      )}
+      {constraintTeacher && (
+        <ConstraintModal teacher={constraintTeacher} onClose={() => setConstraintTeacher(null)} />
       )}
 
       <h2>מאגר מורים</h2>
@@ -81,6 +86,14 @@ export const TeacherPanel: React.FC = () => {
                 <div className="teacher-header">
                   <strong>{teacher.name}</strong>
                   <div className="teacher-actions">
+                    <button
+                      onClick={() => setConstraintTeacher(teacher)}
+                      className="btn-secondary"
+                      title="הגש בקשת אילוץ למנהלת"
+                      style={{ fontSize: '0.75rem', padding: '2px 6px', height: '24px' }}
+                    >
+                      + אילוץ
+                    </button>
                     <span className="hours-text">
                       {currentHours} / {teacher.maxHours} שעות
                     </span>

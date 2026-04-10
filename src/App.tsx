@@ -3,12 +3,14 @@ import React, { useRef, useState } from 'react';
 import { TeacherPanel } from './components/TeacherPanel';
 import { SchedulerGrid } from './components/SchedulerGrid';
 import { TimetableGrid } from './components/TimetableGrid';
+import { ConstraintsManagerModal } from './components/ConstraintsManagerModal';
 import { useAppContext } from './store';
 import { LoginModal } from './components/LoginModal';
 
 function App() {
-  const { isManager, currentUser, logout, exportData, importFromFile } = useAppContext();
+  const { state, isManager, currentUser, logout, exportData, importFromFile } = useAppContext();
   const [showLogin, setShowLogin] = useState(false);
+  const [showConstraints, setShowConstraints] = useState(false);
   const [activeTab, setActiveTab] = useState<'allocations' | 'timetable'>('timetable');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,6 +46,18 @@ function App() {
         <div className="header-actions">
           {isManager ? (
             <>
+              <button 
+                className="btn-secondary" 
+                onClick={() => setShowConstraints(true)}
+                style={{ position: 'relative' }}
+              >
+                אילוצים
+                {((state.constraints?.filter(c => c.status === 'pending').length) || 0) > 0 && (
+                   <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--danger)', color: 'white', borderRadius: '50%', padding: '2px 6px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                     {state.constraints?.filter(c => c.status === 'pending').length}
+                   </span>
+                )}
+              </button>
               <button className="btn-secondary" onClick={logout} title={currentUser?.email || ''}>
                 התנתק (מנהל)
               </button>
@@ -67,6 +81,7 @@ function App() {
         <TeacherPanel />
       </main>
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
+      {showConstraints && <ConstraintsManagerModal onClose={() => setShowConstraints(false)} />}
     </div>
   );
 }

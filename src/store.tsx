@@ -27,11 +27,21 @@ export type TimetableAssignment = {
   subjectId: string;
 };
 
+export type Constraint = {
+  id: string;
+  teacherId: string;
+  day: string;
+  hour: number;
+  description: string;
+  status: 'pending' | 'approved' | 'rejected';
+};
+
 type AppState = {
   teachers: Teacher[];
   assignments: Assignment[];
   timetableAssignments: TimetableAssignment[];
   homeroomTeachers: Record<string, string>;
+  constraints?: Constraint[];
 };
 
 type AppContextType = {
@@ -47,6 +57,8 @@ type AppContextType = {
   updateTeacher: (teacherId: string, updates: Partial<Teacher>) => void;
   getTeacherTotalHours: (teacherId: string) => number;
   setHomeroomTeacher: (classId: string, teacherId: string) => void;
+  addConstraint: (teacherId: string, day: string, hour: number, description: string) => void;
+  updateConstraintStatus: (id: string, status: 'approved' | 'rejected') => void;
   exportData: () => void;
   importFromFile: (file: File) => Promise<void>;
   logout: () => void;
@@ -95,12 +107,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           teachers: data.teachers || [],
           assignments: data.assignments || [],
           timetableAssignments: data.timetableAssignments || [],
-          homeroomTeachers: data.homeroomTeachers || {}
+          homeroomTeachers: data.homeroomTeachers || {},
+          constraints: data.constraints || []
         });
         autoBackup(data);
       } else {
         // Document missing, define initial structure
-        setDoc(docRef, { teachers: [], assignments: [], timetableAssignments: [], homeroomTeachers: {} }).catch((e: any) => console.error("Init error:", e));
+        setDoc(docRef, { teachers: [], assignments: [], timetableAssignments: [], homeroomTeachers: {}, constraints: [] }).catch((e: any) => console.error("Init error:", e));
       }
     });
     return () => unsubscribe();
@@ -127,7 +140,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       teachers: prev.teachers.filter(t => t.id !== id),
       assignments: prev.assignments.filter(a => a.teacherId !== id),
-      timetableAssignments: (prev.timetableAssignments || []).filter(a => a.teacherId !== id)
+      timetableAssignments: (prev.timetableAssignments || []).filter(a => a.teacherId !== id),
+      constraints: (prev.constraints || []).filter(c => c.teacherId !== id)
     }));
   };
 
@@ -185,6 +199,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
+    const approvedConstraint = state.constraints?.find(
+      c => c.teacherId === teacherId && c.day === day && c.hour === hour && c.status === 'approved'
+    );
+
+    if (approvedConstraint) {
+      const availableTeachers = state.teachers
+        .filter(t => {
+           const dOffs = t.daysOff || (t.dayOff ? [t.dayOff] : []);
+           const hasConstraint = state.constraints?.find(c => c.teacherId === t.id && c.day === day && c.hour === hour && c.status === 'approved');
+           return !dOffs.includes(day) && !hasConstraint && t.id !== teacherId;
+        })
+        .map(t => t.name)
+        .join(', ');
+
+      alert(`שגיאה: אילוץ במערכת! למורה ${teacher.name} יש אילוץ מאושר בשעה זו (${approvedConstraint.description}).\n\nמורים חלופיים לשעה זו:\n${availableTeachers || 'אין מורים אחרים'}`);
+      return;
+    }
+
     const overlap = state.timetableAssignments?.find(
       a => a.day === day && a.hour === hour && a.teacherId === teacherId && a.classId !== classId
     );
@@ -220,6 +252,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
+  const addConstraint = (teacherId: string, day: string, hour: number, description: string) => {
+    updateRemote(prev => ({
+      ...prev,
+      constraints: [...(prev.constraints || []), {
+        id: Date.now().toString(),
+        teacherId,
+        day,
+        hour,
+        description,
+        status: isManager ? 'approved' : 'pending'
+      }]
+    })).then(() => alert(isManager ? 'האילוץ נוסף ואושר בהצלחה!' : 'האילוץ נשלח בהצלחה למנהלת לאישור. הבקשה ממתינה לטיפול.'));
+  };
+
+  const updateConstraintStatus = (id: string, status: 'approved' | 'rejected') => {
+    updateRemote(prev => ({
+       ...prev,
+       constraints: (prev.constraints || []).map(c => c.id === id ? { ...c, status } : c)
+    }));
+  };
 
   const exportData = () => {
     const json = JSON.stringify(state, null, 2);
@@ -255,7 +307,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider value={{ state, currentUser, isManager, addTeacher, removeTeacher, setAssignment, removeAssignment, setTimetableAssignment, removeTimetableAssignment, updateTeacher, getTeacherTotalHours, setHomeroomTeacher, exportData, importFromFile, logout }}>
+    <AppContext.Provider value={{ state, currentUser, isManager, addTeacher, removeTeacher, setAssignment, removeAssignment, setTimetableAssignment, removeTimetableAssignment, updateTeacher, getTeacherTotalHours, setHomeroomTeacher, addConstraint, updateConstraintStatus, exportData, importFromFile, logout }}>
       {children}
     </AppContext.Provider>
   );
