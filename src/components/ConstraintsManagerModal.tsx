@@ -21,7 +21,8 @@ export const ConstraintsManagerModal: React.FC<{ onClose: () => void }> = ({ onC
               return (
                 <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
                   <div>
-                    <strong>{teacher?.name}</strong>: יום {c.day} שעה {c.hour}
+                    <strong>{teacher?.name}</strong>: יום {c.day} <br/>
+                    <em style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>שעות: {(c.hours || (c.hour ? [c.hour] : [])).sort((a,b)=>a-b).join(', ')}</em>
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{c.description}</div>
                   </div>
                   

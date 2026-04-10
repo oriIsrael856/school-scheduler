@@ -5,13 +5,21 @@ import { DAYS, HOURS } from '../constants';
 export const ConstraintModal: React.FC<{ teacher: Teacher, onClose: () => void }> = ({ teacher, onClose }) => {
   const { addConstraint } = useAppContext();
   const [day, setDay] = useState(DAYS[0]);
-  const [hour, setHour] = useState(HOURS[0]);
+  const [hours, setHours] = useState<number[]>([]);
   const [description, setDescription] = useState('');
+
+  const handleHourToggle = (h: number) => {
+    setHours(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim()) return;
-    addConstraint(teacher.id, day, hour, description);
+    if (hours.length === 0) {
+      alert('יש לבחור לפחות שעה אחת לאילוץ.');
+      return;
+    }
+    addConstraint(teacher.id, day, hours, description);
     onClose();
   };
 
@@ -32,10 +40,19 @@ export const ConstraintModal: React.FC<{ teacher: Teacher, onClose: () => void }
           </div>
           
           <div className="form-group">
-            <label>שעת האילוץ:</label>
-            <select value={hour} onChange={e => setHour(Number(e.target.value))} required>
-              {HOURS.map(h => <option key={h} value={h}>שעה {h}</option>)}
-            </select>
+            <label>בחירת שעות (ניתן לסמן כמה):</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', background: 'var(--bg-main)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              {HOURS.map(h => (
+                <label key={h} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'normal' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={hours.includes(h)} 
+                    onChange={() => handleHourToggle(h)} 
+                  /> 
+                  שעה {h}
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="form-group">

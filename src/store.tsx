@@ -31,7 +31,8 @@ export type Constraint = {
   id: string;
   teacherId: string;
   day: string;
-  hour: number;
+  hour?: number; // legacy
+  hours: number[];
   description: string;
   status: 'pending' | 'approved' | 'rejected';
 };
@@ -57,7 +58,7 @@ type AppContextType = {
   updateTeacher: (teacherId: string, updates: Partial<Teacher>) => void;
   getTeacherTotalHours: (teacherId: string) => number;
   setHomeroomTeacher: (classId: string, teacherId: string) => void;
-  addConstraint: (teacherId: string, day: string, hour: number, description: string) => void;
+  addConstraint: (teacherId: string, day: string, hours: number[], description: string) => void;
   updateConstraintStatus: (id: string, status: 'approved' | 'rejected') => void;
   exportData: () => void;
   importFromFile: (file: File) => Promise<void>;
@@ -200,14 +201,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const approvedConstraint = state.constraints?.find(
-      c => c.teacherId === teacherId && c.day === day && c.hour === hour && c.status === 'approved'
+      c => c.teacherId === teacherId && c.day === day && c.status === 'approved' && (c.hours || (c.hour ? [c.hour] : [])).includes(hour)
     );
 
     if (approvedConstraint) {
       const availableTeachers = state.teachers
         .filter(t => {
            const dOffs = t.daysOff || (t.dayOff ? [t.dayOff] : []);
-           const hasConstraint = state.constraints?.find(c => c.teacherId === t.id && c.day === day && c.hour === hour && c.status === 'approved');
+           const hasConstraint = state.constraints?.find(c => c.teacherId === t.id && c.day === day && c.status === 'approved' && (c.hours || (c.hour ? [c.hour] : [])).includes(hour));
            return !dOffs.includes(day) && !hasConstraint && t.id !== teacherId;
         })
         .map(t => t.name)
@@ -252,14 +253,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
-  const addConstraint = (teacherId: string, day: string, hour: number, description: string) => {
+  const addConstraint = (teacherId: string, day: string, hours: number[], description: string) => {
     updateRemote(prev => ({
       ...prev,
       constraints: [...(prev.constraints || []), {
         id: Date.now().toString(),
         teacherId,
         day,
-        hour,
+        hours,
         description,
         status: isManager ? 'approved' : 'pending'
       }]
