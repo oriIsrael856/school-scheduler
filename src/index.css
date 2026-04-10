@@ -557,3 +557,81 @@ th {
 @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .app-container {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  .app-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .header-actions button {
+    flex: 1 1 calc(50% - 0.5rem);
+    text-align: center;
+  }
+
+  .main-content {
+    flex-direction: column-reverse; /* Puts Scheduler on top, Teacher Panel below */
+    overflow: visible;
+  }
+
+  .teacher-panel {
+    width: 100%;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .scheduler-container {
+    padding: 1rem 0.5rem;
+    overflow: visible;
+  }
+
+  .scheduler-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  th, td {
+    min-width: 90px;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .class-title {
+    font-size: 0.9rem;
+  }
+
+  .assignment-badge {
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+
+  .add-teacher-form .form-group {
+    flex-direction: column;
+  }
+}
