@@ -23,14 +23,12 @@ type AppState = {
 
 type AppContextType = {
   state: AppState;
-  hasLocalData: boolean;
   addTeacher: (name: string, maxHours: number) => void;
   removeTeacher: (id: string) => void;
   setAssignment: (classId: string, subjectId: string, teacherId: string, hours: number) => void;
   removeAssignment: (classId: string, subjectId: string) => void;
   getTeacherTotalHours: (teacherId: string) => number;
   setHomeroomTeacher: (classId: string, teacherId: string) => void;
-  importLocalData: () => Promise<void>;
   exportData: () => void;
   importFromFile: (file: File) => Promise<void>;
 };
@@ -38,26 +36,29 @@ type AppContextType = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const MAIN_DOC_ID = 'main_schedule';
-const LOCAL_STORAGE_KEY = 'school_scheduler_data';
-
-const getLocalData = (): AppState | null => {
-  const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (!saved) return null;
-  try {
-    const parsed = JSON.parse(saved) as AppState;
-    if (parsed.teachers?.length > 0 || parsed.assignments?.length > 0) return parsed;
-  } catch (e) {}
-  return null;
-};
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AppState>(() => {
-    const local = getLocalData();
-    return local ?? { teachers: [], assignments: [], homeroomTeachers: {} };
-  });
-  const [hasLocalData, setHasLocalData] = useState<boolean>(() => getLocalData() !== null);
+  const [state, setState] = useState<AppState>({ teachers: [], assignments: [], homeroomTeachers: {} });
 
   useEffect(() => {
+    const autoBackup = (data: AppState) => {
+      const today = new Date().toISOString().slice(0, 10);
+      const lastBackup = localStorage.getItem('school_scheduler_last_auto_backup');
+      if (lastBackup !== today && ((data.teachers && data.teachers.length > 0) || (data.assignments && data.assignments.length > 0))) {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `school-scheduler-auto-backup-${today}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        localStorage.setItem('school_scheduler_last_auto_backup', today);
+      }
+    };
+
     const docRef = doc(db, 'scheduler_data', MAIN_DOC_ID);
     const unsubscribe = onSnapshot(docRef, (docSnap: any) => {
       if (docSnap.exists()) {
@@ -67,13 +68,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           assignments: data.assignments || [],
           homeroomTeachers: data.homeroomTeachers || {}
         });
+        autoBackup(data);
       } else {
-        // 🔥 MIGRATION: If Firestore is totally empty, push the local storage data to the cloud!
-        setDoc(docRef, state).catch((e: any) => console.error("Migration error:", e));
+        // Document missing, define initial structure
+        setDoc(docRef, { teachers: [], assignments: [], homeroomTeachers: {} }).catch((e: any) => console.error("Init error:", e));
       }
     });
     return () => unsubscribe();
-  }, []); // Only runs once on mount. 'state' here is the initial LocalStorage state
+  }, []);
 
   const updateRemote = async (updateFn: (prev: AppState) => AppState) => {
     setState(prev => {
@@ -138,23 +140,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
-  const importLocalData = async () => {
-    const local = getLocalData();
-    if (!local) {
-      alert('לא נמצאו נתונים מקומיים לייבוא.');
-      return;
-    }
-    const teacherCount = local.teachers?.length ?? 0;
-    const assignmentCount = local.assignments?.length ?? 0;
-    const confirmed = window.confirm(
-      `נמצאו נתונים מקומיים:\n• ${teacherCount} מורות\n• ${assignmentCount} שיבוצים\n\nהייבוא יחליף את כל הנתונים הנוכחיים בענן.\nלהמשיך?`
-    );
-    if (!confirmed) return;
-    const docRef = doc(db, 'scheduler_data', MAIN_DOC_ID);
-    await setDoc(docRef, local);
-    setHasLocalData(false);
-    alert('הנתונים יובאו לענן בהצלחה!');
-  };
 
   const exportData = () => {
     const json = JSON.stringify(state, null, 2);
@@ -190,7 +175,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider value={{ state, hasLocalData, addTeacher, removeTeacher, setAssignment, removeAssignment, getTeacherTotalHours, setHomeroomTeacher, importLocalData, exportData, importFromFile }}>
+    <AppContext.Provider value={{ state, addTeacher, removeTeacher, setAssignment, removeAssignment, getTeacherTotalHours, setHomeroomTeacher, exportData, importFromFile }}>
       {children}
     </AppContext.Provider>
   );
