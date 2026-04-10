@@ -7,6 +7,8 @@ export type Teacher = {
   id: string;
   name: string;
   maxHours: number;
+  dayOff?: string;
+  tutoringHours?: number;
 };
 
 export type Assignment = {
@@ -16,9 +18,18 @@ export type Assignment = {
   hours: number;
 };
 
+export type TimetableAssignment = {
+  classId: string;
+  day: string;
+  hour: number;
+  teacherId: string;
+  subjectId: string;
+};
+
 type AppState = {
   teachers: Teacher[];
   assignments: Assignment[];
+  timetableAssignments: TimetableAssignment[];
   homeroomTeachers: Record<string, string>;
 };
 
@@ -30,6 +41,9 @@ type AppContextType = {
   removeTeacher: (id: string) => void;
   setAssignment: (classId: string, subjectId: string, teacherId: string, hours: number) => void;
   removeAssignment: (classId: string, subjectId: string) => void;
+  setTimetableAssignment: (classId: string, day: string, hour: number, teacherId: string, subjectId: string) => void;
+  removeTimetableAssignment: (classId: string, day: string, hour: number) => void;
+  updateTeacher: (teacherId: string, updates: Partial<Teacher>) => void;
   getTeacherTotalHours: (teacherId: string) => number;
   setHomeroomTeacher: (classId: string, teacherId: string) => void;
   exportData: () => void;
@@ -42,7 +56,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const MAIN_DOC_ID = 'main_schedule';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AppState>({ teachers: [], assignments: [], homeroomTeachers: {} });
+  const [state, setState] = useState<AppState>({ teachers: [], assignments: [], timetableAssignments: [], homeroomTeachers: {} });
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -79,12 +93,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setState({
           teachers: data.teachers || [],
           assignments: data.assignments || [],
+          timetableAssignments: data.timetableAssignments || [],
           homeroomTeachers: data.homeroomTeachers || {}
         });
         autoBackup(data);
       } else {
         // Document missing, define initial structure
-        setDoc(docRef, { teachers: [], assignments: [], homeroomTeachers: {} }).catch((e: any) => console.error("Init error:", e));
+        setDoc(docRef, { teachers: [], assignments: [], timetableAssignments: [], homeroomTeachers: {} }).catch((e: any) => console.error("Init error:", e));
       }
     });
     return () => unsubscribe();
@@ -102,7 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addTeacher = (name: string, maxHours: number) => {
     updateRemote(prev => ({
       ...prev,
-      teachers: [...prev.teachers, { id: Date.now().toString(), name, maxHours }]
+      teachers: [...prev.teachers, { id: Date.now().toString(), name, maxHours, tutoringHours: 3 }]
     }));
   };
 
@@ -110,7 +125,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateRemote(prev => ({
       ...prev,
       teachers: prev.teachers.filter(t => t.id !== id),
-      assignments: prev.assignments.filter(a => a.teacherId !== id)
+      assignments: prev.assignments.filter(a => a.teacherId !== id),
+      timetableAssignments: (prev.timetableAssignments || []).filter(a => a.teacherId !== id)
+    }));
+  };
+
+  const updateTeacher = (teacherId: string, updates: Partial<Teacher>) => {
+    updateRemote(prev => ({
+      ...prev,
+      teachers: prev.teachers.map(t => t.id === teacherId ? { ...t, ...updates } : t)
     }));
   };
 
@@ -140,6 +163,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateRemote(prev => ({
       ...prev,
       assignments: prev.assignments.filter(a => !(a.classId === classId && a.subjectId === subjectId))
+    }));
+  };
+
+  const setTimetableAssignment = (classId: string, day: string, hour: number, teacherId: string, subjectId: string) => {
+    const teacher = state.teachers.find(t => t.id === teacherId);
+    if (!teacher) return;
+
+    if (teacher.dayOff === day) {
+      const availableTeachers = state.teachers
+        .filter(t => t.dayOff !== day && t.id !== teacherId)
+        .map(t => t.name)
+        .join(', ');
+      alert(`שגיאה: יום ${day} הוא היום החופשי של ${teacher.name}!\n\nמורים מומלצים ליום זה:\n${availableTeachers || 'אין מורים אחרים'}`);
+      return;
+    }
+
+    const overlap = state.timetableAssignments?.find(
+      a => a.day === day && a.hour === hour && a.teacherId === teacherId && a.classId !== classId
+    );
+    if (overlap) {
+      alert(`שגיאה: שיבוץ כפול! המורה ${teacher.name} כבר משובץ/ת ביום ${day} שעה ${hour} בכיתה ${overlap.classId} (${overlap.subjectId})`);
+      return;
+    }
+
+    updateRemote(prev => {
+      const newTimetable = (prev.timetableAssignments || []).filter(
+        a => !(a.classId === classId && a.day === day && a.hour === hour)
+      );
+      return { ...prev, timetableAssignments: [...newTimetable, { classId, day, hour, teacherId, subjectId }] };
+    });
+  };
+
+  const removeTimetableAssignment = (classId: string, day: string, hour: number) => {
+    updateRemote(prev => ({
+      ...prev,
+      timetableAssignments: (prev.timetableAssignments || []).filter(
+        a => !(a.classId === classId && a.day === day && a.hour === hour)
+      )
     }));
   };
 
@@ -188,7 +249,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider value={{ state, currentUser, isManager, addTeacher, removeTeacher, setAssignment, removeAssignment, getTeacherTotalHours, setHomeroomTeacher, exportData, importFromFile, logout }}>
+    <AppContext.Provider value={{ state, currentUser, isManager, addTeacher, removeTeacher, setAssignment, removeAssignment, setTimetableAssignment, removeTimetableAssignment, updateTeacher, getTeacherTotalHours, setHomeroomTeacher, exportData, importFromFile, logout }}>
       {children}
     </AppContext.Provider>
   );

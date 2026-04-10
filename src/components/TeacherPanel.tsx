@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useAppContext, Teacher } from '../store';
 import { TeacherScheduleModal } from './TeacherScheduleModal';
+import { DAYS } from '../constants';
 
 export const TeacherPanel: React.FC = () => {
-  const { state, addTeacher, removeTeacher, getTeacherTotalHours, isManager } = useAppContext();
+  const { state, addTeacher, removeTeacher, updateTeacher, getTeacherTotalHours, isManager } = useAppContext();
   const [newTeacherName, setNewTeacherName] = useState('');
   const [maxHours, setMaxHours] = useState(26);
   const [search, setSearch] = useState('');
@@ -80,6 +81,17 @@ export const TeacherPanel: React.FC = () => {
                 <div className="teacher-header">
                   <strong>{teacher.name}</strong>
                   <div className="teacher-actions">
+                    {isManager && (
+                      <select 
+                        value={teacher.dayOff || ''} 
+                        onChange={e => updateTeacher(teacher.id, { dayOff: e.target.value })}
+                        title="יום חופשי"
+                        className="day-off-select"
+                      >
+                        <option value="">בלי יום חופשי</option>
+                        {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    )}
                     <span className="hours-text">
                       {currentHours} / {teacher.maxHours} שעות
                     </span>
@@ -101,11 +113,19 @@ export const TeacherPanel: React.FC = () => {
                     )}
                   </div>
                 </div>
+                {teacher.dayOff && <div className="day-off-badge">מעדיף/ה חופש ביום {teacher.dayOff}</div>}
+                
                 <div className="progress-bar-container">
                   <div 
                     className={`progress-bar ${isOverLimit ? 'over-limit' : ''}`} 
                     style={{ width: `${percentage}%` }}
                   ></div>
+                </div>
+                
+                <div className="tutoring-info">
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    שעות פרטניות: {state.timetableAssignments?.filter(a => a.teacherId === teacher.id && a.subjectId === 'פרטני').length || 0} / {teacher.tutoringHours || 3}
+                  </span>
                 </div>
               </div>
             );
