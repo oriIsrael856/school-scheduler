@@ -12,6 +12,24 @@ export const CLASSES = [
 export const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
 export const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+export const HOUR_TIMES: Record<number, string> = {
+  1: '08:05 - 08:55',
+  2: '08:55 - 09:45',
+  3: '10:15 - 11:00',
+  4: '11:00 - 11:45',
+  5: '12:00 - 12:45',
+  6: '12:45 - 13:30',
+  7: '13:45 - 14:30',
+  8: '14:30 - 15:15',
+  9: '15:15 - 16:00',
+};
+
+export const BREAKS = [
+  { afterHour: 2, name: 'הפסקת אוכל', time: '09:45 - 10:15' },
+  { afterHour: 4, name: 'הפסקה', time: '11:45 - 12:00' },
+  { afterHour: 6, name: 'הפסקת צהריים', time: '13:30 - 13:45' }
+];
+
 export const SUBJECTS = [
   'מתמטיקה/חשבון',
   'שפה',

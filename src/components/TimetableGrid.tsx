@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../store';
-import { CLASSES, DAYS, HOURS, SUBJECTS } from '../constants';
+import { CLASSES, DAYS, HOURS, SUBJECTS, HOUR_TIMES, BREAKS } from '../constants';
 
 export const TimetableGrid: React.FC = () => {
   const { state, setTimetableAssignment, removeTimetableAssignment, isManager } = useAppContext();
@@ -49,34 +49,54 @@ export const TimetableGrid: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {HOURS.map(hour => (
-              <tr key={hour}>
-                <th className="subject-header sticky-right">שעה {hour}</th>
-                {DAYS.map(day => {
-                  const assignment = state.timetableAssignments?.find(
-                    a => a.classId === selectedClass && a.day === day && a.hour === hour
-                  );
-                  const teacher = assignment ? state.teachers.find(t => t.id === assignment.teacherId) : null;
-                  
-                  return (
-                    <td 
-                      key={day} 
-                      className={`grid-cell ${!isManager ? 'read-only' : ''}`}
-                      onClick={() => isManager && setEditingSlot({ day, hour })}
-                    >
-                      {assignment ? (
-                        <div className="assignment-badge" style={{ flexDirection: 'column' }}>
-                          <span className="subject-title" style={{ fontWeight: 'bold' }}>{assignment.subjectId}</span>
-                          <span className="teacher-name">{teacher?.name || 'M'}</span>
-                        </div>
-                      ) : (
-                        <div className="empty-cell-indicator" style={{ display: isManager ? 'block' : 'none' }}>+</div>
-                      )}
+            {HOURS.map(hour => {
+              const breakAfter = BREAKS.find(b => b.afterHour === hour);
+              
+              return (
+              <React.Fragment key={hour}>
+                <tr>
+                  <th className="subject-header sticky-right" style={{ textAlign: 'center', padding: '0.5rem' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--primary-hover)' }}>שעה {hour}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{HOUR_TIMES[hour]}</div>
+                  </th>
+                  {DAYS.map(day => {
+                    const assignment = state.timetableAssignments?.find(
+                      a => a.classId === selectedClass && a.day === day && a.hour === hour
+                    );
+                    const teacher = assignment ? state.teachers.find(t => t.id === assignment.teacherId) : null;
+                    
+                    return (
+                      <td 
+                        key={day} 
+                        className={`grid-cell ${!isManager ? 'read-only' : ''}`}
+                        onClick={() => isManager && setEditingSlot({ day, hour })}
+                      >
+                        {assignment ? (
+                          <div className="assignment-badge" style={{ flexDirection: 'column' }}>
+                            <span className="subject-title" style={{ fontWeight: 'bold' }}>{assignment.subjectId}</span>
+                            <span className="teacher-name" style={{ fontSize: '0.8rem' }}>{teacher?.name || 'M'}</span>
+                          </div>
+                        ) : (
+                          <div className="empty-cell-indicator" style={{ display: isManager ? 'block' : 'none' }}>+</div>
+                        )}
+                      </td>
+                    )
+                  })}
+                </tr>
+
+                {breakAfter && (
+                  <tr className="break-row">
+                    <th className="subject-header sticky-right" style={{ background: '#fef3c7', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#b45309' }}>{breakAfter.name}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#d97706' }}>{breakAfter.time}</div>
+                    </th>
+                    <td colSpan={DAYS.length} style={{ background: '#fef3c7', textAlign: 'center', color: '#b45309', fontWeight: 'bold', letterSpacing: '2px' }}>
+                      ~ {breakAfter.name} ~
                     </td>
-                  )
-                })}
-              </tr>
-            ))}
+                  </tr>
+                )}
+              </React.Fragment>
+            )})}
           </tbody>
         </table>
       </div>
