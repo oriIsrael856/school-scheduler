@@ -25,7 +25,8 @@ export const HOUR_TIMES: Record<number, string> = {
 };
 
 export const BREAKS = [
-  { afterHour: 2, name: 'הפסקת אוכל', time: '09:45 - 10:15' },
+  { afterHour: 2, name: 'הפסקת אוכל', time: '09:45 - 10:00' },
+  { afterHour: 2, name: 'הפסקה', time: '10:00 - 10:15' },
   { afterHour: 4, name: 'הפסקה', time: '11:45 - 12:00' },
   { afterHour: 6, name: 'הפסקת צהריים', time: '13:30 - 13:45' }
 ];

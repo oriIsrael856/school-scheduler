@@ -50,7 +50,7 @@ export const TimetableGrid: React.FC = () => {
           </thead>
           <tbody>
             {HOURS.map(hour => {
-              const breakAfter = BREAKS.find(b => b.afterHour === hour);
+              const breaksAfter = BREAKS.filter(b => b.afterHour === hour);
               
               return (
               <React.Fragment key={hour}>
@@ -84,17 +84,17 @@ export const TimetableGrid: React.FC = () => {
                   })}
                 </tr>
 
-                {breakAfter && (
-                  <tr className="break-row">
+                {breaksAfter.map((b, idx) => (
+                  <tr key={`break-${hour}-${idx}`} className="break-row">
                     <th className="subject-header sticky-right" style={{ background: '#fef3c7', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#b45309' }}>{breakAfter.name}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#d97706' }}>{breakAfter.time}</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#b45309' }}>{b.name}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#d97706' }}>{b.time}</div>
                     </th>
                     <td colSpan={DAYS.length} style={{ background: '#fef3c7', textAlign: 'center', color: '#b45309', fontWeight: 'bold', letterSpacing: '2px' }}>
-                      ~ {breakAfter.name} ~
+                      ~ {b.name} ~
                     </td>
                   </tr>
-                )}
+                ))}
               </React.Fragment>
             )})}
           </tbody>
