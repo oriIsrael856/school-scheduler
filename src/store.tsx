@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 
 export type Teacher = {
   id: string;
@@ -23,6 +24,8 @@ type AppState = {
 
 type AppContextType = {
   state: AppState;
+  currentUser: User | null;
+  isManager: boolean;
   addTeacher: (name: string, maxHours: number) => void;
   removeTeacher: (id: string) => void;
   setAssignment: (classId: string, subjectId: string, teacherId: string, hours: number) => void;
@@ -31,6 +34,7 @@ type AppContextType = {
   setHomeroomTeacher: (classId: string, teacherId: string) => void;
   exportData: () => void;
   importFromFile: (file: File) => Promise<void>;
+  logout: () => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -39,6 +43,15 @@ const MAIN_DOC_ID = 'main_schedule';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>({ teachers: [], assignments: [], homeroomTeachers: {} });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, user => setCurrentUser(user));
+    return () => unsubAuth();
+  }, []);
+
+  const isManager = currentUser !== null;
+  const logout = () => signOut(auth);
 
   useEffect(() => {
     const autoBackup = (data: AppState) => {
@@ -175,7 +188,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider value={{ state, addTeacher, removeTeacher, setAssignment, removeAssignment, getTeacherTotalHours, setHomeroomTeacher, exportData, importFromFile }}>
+    <AppContext.Provider value={{ state, currentUser, isManager, addTeacher, removeTeacher, setAssignment, removeAssignment, getTeacherTotalHours, setHomeroomTeacher, exportData, importFromFile, logout }}>
       {children}
     </AppContext.Provider>
   );

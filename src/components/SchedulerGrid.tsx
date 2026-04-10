@@ -8,7 +8,7 @@ type EditingCell = {
 } | null;
 
 export const SchedulerGrid: React.FC = () => {
-  const { state, setAssignment, removeAssignment, setHomeroomTeacher } = useAppContext();
+  const { state, setAssignment, removeAssignment, setHomeroomTeacher, isManager } = useAppContext();
   const [editingCell, setEditingCell] = useState<EditingCell>(null);
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
 
@@ -56,6 +56,7 @@ export const SchedulerGrid: React.FC = () => {
                   <div className="homeroom-wrapper">
                     <select 
                       className="homeroom-select"
+                      disabled={!isManager}
                       value={state.homeroomTeachers?.[cls] || ''}
                       onChange={e => setHomeroomTeacher(cls, e.target.value)}
                     >
@@ -78,8 +79,8 @@ export const SchedulerGrid: React.FC = () => {
                   return (
                     <td 
                       key={cls} 
-                      className="grid-cell"
-                      onClick={() => setEditingCell({classId: cls, subjectId: subject})}
+                      className={`grid-cell ${!isManager ? 'read-only' : ''}`}
+                      onClick={() => isManager && setEditingCell({classId: cls, subjectId: subject})}
                     >
                       {teacher ? (
                         <div className="assignment-badge">

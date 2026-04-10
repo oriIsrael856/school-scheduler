@@ -3,7 +3,7 @@ import { useAppContext, Teacher } from '../store';
 import { TeacherScheduleModal } from './TeacherScheduleModal';
 
 export const TeacherPanel: React.FC = () => {
-  const { state, addTeacher, removeTeacher, getTeacherTotalHours } = useAppContext();
+  const { state, addTeacher, removeTeacher, getTeacherTotalHours, isManager } = useAppContext();
   const [newTeacherName, setNewTeacherName] = useState('');
   const [maxHours, setMaxHours] = useState(26);
   const [search, setSearch] = useState('');
@@ -29,7 +29,8 @@ export const TeacherPanel: React.FC = () => {
 
       <h2>מאגר מורים</h2>
 
-      <form onSubmit={handleAdd} className="add-teacher-form">
+      {isManager && (
+        <form onSubmit={handleAdd} className="add-teacher-form">
         <div className="form-group">
           <input
             type="text"
@@ -51,6 +52,7 @@ export const TeacherPanel: React.FC = () => {
           <button type="submit" className="btn-primary">הוסף</button>
         </div>
       </form>
+      )}
 
       <div className="teacher-search-wrapper">
         <input
@@ -88,13 +90,15 @@ export const TeacherPanel: React.FC = () => {
                     >
                       📋
                     </button>
-                    <button 
-                      onClick={() => removeTeacher(teacher.id)}
-                      className="btn-icon btn-danger"
-                      title="מחק מורה"
-                    >
-                      &times;
-                    </button>
+                    {isManager && (
+                      <button 
+                        onClick={() => removeTeacher(teacher.id)}
+                        className="btn-icon btn-danger"
+                        title="מחק מורה"
+                      >
+                        &times;
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="progress-bar-container">
