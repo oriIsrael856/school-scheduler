@@ -7,7 +7,8 @@ export type Teacher = {
   id: string;
   name: string;
   maxHours: number;
-  dayOff?: string;
+  dayOff?: string; // Legacy
+  daysOff?: string[];
   tutoringHours?: number;
 };
 
@@ -170,12 +171,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const teacher = state.teachers.find(t => t.id === teacherId);
     if (!teacher) return;
 
-    if (teacher.dayOff === day) {
+    const teacherDaysOff = teacher.daysOff || (teacher.dayOff ? [teacher.dayOff] : []);
+
+    if (teacherDaysOff.includes(day)) {
       const availableTeachers = state.teachers
-        .filter(t => t.dayOff !== day && t.id !== teacherId)
+        .filter(t => {
+           const dOffs = t.daysOff || (t.dayOff ? [t.dayOff] : []);
+           return !dOffs.includes(day) && t.id !== teacherId;
+        })
         .map(t => t.name)
         .join(', ');
-      alert(`שגיאה: יום ${day} הוא היום החופשי של ${teacher.name}!\n\nמורים מומלצים ליום זה:\n${availableTeachers || 'אין מורים אחרים'}`);
+      alert(`שגיאה: יום ${day} הוא יום חופשי של ${teacher.name}!\n\nמורים מומלצים ליום זה:\n${availableTeachers || 'אין מורים אחרים'}`);
       return;
     }
 

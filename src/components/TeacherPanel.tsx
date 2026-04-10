@@ -110,24 +110,49 @@ export const TeacherPanel: React.FC = () => {
                   ></div>
                 </div>
                 
-                <div className="tutoring-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                <div className="tutoring-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap', gap: '5px' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                     פרטני: {state.timetableAssignments?.filter(a => a.teacherId === teacher.id && a.subjectId === 'פרטני').length || 0} / {teacher.tutoringHours || 3}
                   </span>
                   
                   {isManager ? (
-                    <select 
-                      value={teacher.dayOff || ''} 
-                      onChange={e => updateTeacher(teacher.id, { dayOff: e.target.value })}
-                      title="יום חופשי"
-                      className="day-off-select"
-                      style={{ fontSize: '0.75rem', padding: '2px', borderRadius: '4px', border: '1px solid var(--border-color)', outline: 'none' }}
-                    >
-                      <option value="">יום חופש: ללא</option>
-                      {DAYS.map(d => <option key={d} value={d}>חופש ב-{d}</option>)}
-                    </select>
+                    <div style={{ display: 'flex', gap: '3px' }}>
+                      <select 
+                        value={(teacher.daysOff && teacher.daysOff[0]) || teacher.dayOff || ''} 
+                        onChange={e => {
+                           const secondDay = (teacher.daysOff && teacher.daysOff[1]) || '';
+                           const newDays = [e.target.value, secondDay].filter(Boolean);
+                           updateTeacher(teacher.id, { daysOff: newDays, dayOff: newDays[0] || '' });
+                        }}
+                        title="יום חופשי 1"
+                        className="day-off-select"
+                        style={{ fontSize: '0.75rem', padding: '2px', borderRadius: '4px', border: '1px solid var(--border-color)', outline: 'none' }}
+                      >
+                        <option value="">יום חופש: ללא</option>
+                        {DAYS.map(d => <option key={d} value={d}>חופש ב-{d}</option>)}
+                      </select>
+
+                      <select 
+                        value={(teacher.daysOff && teacher.daysOff[1]) || ''} 
+                        onChange={e => {
+                           const firstDay = (teacher.daysOff && teacher.daysOff[0]) || teacher.dayOff || '';
+                           const newDays = Array.from(new Set([firstDay, e.target.value].filter(Boolean)));
+                           updateTeacher(teacher.id, { daysOff: newDays, dayOff: newDays[0] || '' });
+                        }}
+                        title="יום חופשי 2"
+                        className="day-off-select"
+                        style={{ fontSize: '0.75rem', padding: '2px', borderRadius: '4px', border: '1px solid var(--border-color)', outline: 'none' }}
+                      >
+                        <option value="">יום חופש 2: ללא</option>
+                        {DAYS.map(d => <option key={d} value={d}>חופש 2 ב-{d}</option>)}
+                      </select>
+                    </div>
                   ) : (
-                    teacher.dayOff && <div className="day-off-badge" style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>חופש ב-{teacher.dayOff}</div>
+                    <div style={{ display: 'flex', gap: '3px' }}>
+                    {((teacher.daysOff && teacher.daysOff.length > 0) ? teacher.daysOff : (teacher.dayOff ? [teacher.dayOff] : [])).map(d => (
+                       <div key={d} className="day-off-badge" style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>חופש ב-{d}</div>
+                    ))}
+                    </div>
                   )}
                 </div>
               </div>
