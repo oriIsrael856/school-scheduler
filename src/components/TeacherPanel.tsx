@@ -51,7 +51,8 @@ export const TeacherPanel: React.FC = () => {
             max="40"
             value={maxHours}
             onChange={(e) => setMaxHours(Number(e.target.value))}
-            title="מגבלת שעות שבועיות"
+            placeholder="מגבלת שעות (ברירת מחדל למורה חדש)"
+            title="מגבלת שעות (ברירת מחדל למורה חדש)"
             required
             className="hours-input"
           />
@@ -77,9 +78,10 @@ export const TeacherPanel: React.FC = () => {
           <p className="empty-state">לא נמצאו מורים תואמים.</p>
         ) : (
           filteredTeachers.map(teacher => {
+            const maxHoursLimit = teacher.maxHours ?? 26;
             const currentHours = getTeacherTotalHours(teacher.id);
-            const percentage = Math.min(100, Math.round((currentHours / teacher.maxHours) * 100));
-            const isOverLimit = currentHours > teacher.maxHours;
+            const percentage = Math.min(100, Math.round((currentHours / maxHoursLimit) * 100));
+            const isOverLimit = currentHours > maxHoursLimit;
 
             return (
               <div key={teacher.id} className="teacher-card">
@@ -94,9 +96,25 @@ export const TeacherPanel: React.FC = () => {
                     >
                       + אילוץ
                     </button>
-                    <span className="hours-text">
-                      {currentHours} / {teacher.maxHours} שעות
-                    </span>
+                    {isManager ? (
+                      <span className="hours-text hours-text-editable">
+                        {currentHours} /
+                        <input
+                          type="number"
+                          min={1}
+                          max={40}
+                          value={teacher.maxHours ?? 26}
+                          onChange={e => updateTeacher(teacher.id, { maxHours: Number(e.target.value) })}
+                          title="מגבלת שעות שבועיות"
+                          className="teacher-limit-input"
+                        />
+                        שעות
+                      </span>
+                    ) : (
+                      <span className="hours-text">
+                        {currentHours} / {teacher.maxHours ?? 26} שעות
+                      </span>
+                    )}
                     <button
                       onClick={() => setSelectedTeacher(teacher)}
                       className="btn-icon btn-schedule"
@@ -123,13 +141,26 @@ export const TeacherPanel: React.FC = () => {
                   ></div>
                 </div>
                 
-                <div className="tutoring-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', flexWrap: 'wrap', gap: '5px' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    פרטני: {state.timetableAssignments?.filter(a => a.teacherId === teacher.id && a.subjectId === 'פרטני').length || 0} / {teacher.tutoringHours || 3}
+                <div className="teacher-limits-row">
+                  <span className="teacher-limit-label">
+                    פרטני: {state.timetableAssignments?.filter(a => a.teacherId === teacher.id && a.subjectId === 'פרטני').length || 0} /
+                    {isManager ? (
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={teacher.tutoringHours ?? 3}
+                        onChange={e => updateTeacher(teacher.id, { tutoringHours: Number(e.target.value) })}
+                        title="מגבלת שעות פרטני"
+                        className="teacher-limit-input"
+                      />
+                    ) : (
+                      <> {teacher.tutoringHours ?? 3}</>
+                    )}
                   </span>
                   
                   {isManager ? (
-                    <div style={{ display: 'flex', gap: '3px' }}>
+                    <div className="teacher-days-off-controls">
                       <select 
                         value={(teacher.daysOff && teacher.daysOff[0]) || teacher.dayOff || ''} 
                         onChange={e => {
@@ -139,7 +170,6 @@ export const TeacherPanel: React.FC = () => {
                         }}
                         title="יום חופשי 1"
                         className="day-off-select"
-                        style={{ fontSize: '0.75rem', padding: '2px', borderRadius: '4px', border: '1px solid var(--border-color)', outline: 'none' }}
                       >
                         <option value="">יום חופש: ללא</option>
                         {DAYS.map(d => <option key={d} value={d}>חופש ב-{d}</option>)}
@@ -154,16 +184,15 @@ export const TeacherPanel: React.FC = () => {
                         }}
                         title="יום חופשי 2"
                         className="day-off-select"
-                        style={{ fontSize: '0.75rem', padding: '2px', borderRadius: '4px', border: '1px solid var(--border-color)', outline: 'none' }}
                       >
                         <option value="">יום חופש 2: ללא</option>
                         {DAYS.map(d => <option key={d} value={d}>חופש 2 ב-{d}</option>)}
                       </select>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', gap: '3px' }}>
+                    <div className="teacher-days-off-badges">
                     {((teacher.daysOff && teacher.daysOff.length > 0) ? teacher.daysOff : (teacher.dayOff ? [teacher.dayOff] : [])).map(d => (
-                       <div key={d} className="day-off-badge" style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>חופש ב-{d}</div>
+                       <div key={d} className="day-off-badge">חופש ב-{d}</div>
                     ))}
                     </div>
                   )}

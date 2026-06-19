@@ -278,6 +278,73 @@ button { cursor: pointer; font-weight: 600; border: none; letter-spacing: 0.2px;
   font-weight: 500;
 }
 
+.hours-text-editable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.teacher-limit-input {
+  width: 45px;
+  padding: 2px 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: white;
+}
+
+.teacher-limit-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+  outline: none;
+}
+
+.teacher-limits-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.teacher-limit-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.teacher-days-off-controls {
+  display: flex;
+  gap: 3px;
+}
+
+.teacher-days-off-badges {
+  display: flex;
+  gap: 3px;
+}
+
+.day-off-select {
+  font-size: 0.75rem;
+  padding: 2px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  outline: none;
+}
+
+.day-off-badge {
+  font-size: 0.75rem;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
 .progress-bar-container {
   height: 8px;
   background-color: var(--border-color);

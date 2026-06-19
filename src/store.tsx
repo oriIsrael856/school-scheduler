@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { db, auth } from './firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
@@ -73,6 +73,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [state, setState] = useState<AppState>({ teachers: [], assignments: [], timetableAssignments: [], homeroomTeachers: {} });
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
+  const stateRef = useRef<AppState>(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, user => setCurrentUser(user));
     return () => unsubAuth();
@@ -104,6 +110,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const unsubscribe = onSnapshot(docRef, (docSnap: any) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as AppState;
+
+        const isIncomingEmpty = (!data.teachers || data.teachers.length === 0) && (!data.assignments || data.assignments.length === 0);
+        
+        const lastGoodStateStr = localStorage.getItem('scheduler_last_good_state');
+        const lastGoodState: AppState | null = lastGoodStateStr ? JSON.parse(lastGoodStateStr) : null;
+        
+        const prev = lastGoodState || stateRef.current;
+        const wasPrevPopulated = (prev.teachers && prev.teachers.length > 0) || (prev.assignments && prev.assignments.length > 0);
+
+        if (isIncomingEmpty && wasPrevPopulated) {
+          if (!sessionStorage.getItem('emergency_downloaded')) {
+            const json = JSON.stringify(prev, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `school-scheduler-emergency-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            sessionStorage.setItem('emergency_downloaded', 'true');
+            alert('המערכת זיהתה מחיקת נתונים חריגה בשרת! קובץ גיבוי של הנתונים הקודמים שנשמרו במחשב זה הורד אוטומטית.');
+          }
+        }
+        
+        if (!isIncomingEmpty) {
+          localStorage.setItem('scheduler_last_good_state', JSON.stringify(data));
+        }
+
         setState({
           teachers: data.teachers || [],
           assignments: data.assignments || [],
