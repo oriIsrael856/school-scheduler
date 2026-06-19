@@ -192,7 +192,8 @@ button { cursor: pointer; font-weight: 600; border: none; letter-spacing: 0.2px;
 
 /* Teacher Panel */
 .teacher-panel {
-  width: 320px;
+  width: 340px;
+  min-width: 340px;
   background: var(--bg-solid);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -245,53 +246,124 @@ button { cursor: pointer; font-weight: 600; border: none; letter-spacing: 0.2px;
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: 0.875rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 6px rgba(0,0,0,0.02);
 }
 
 .teacher-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.95);
   box-shadow: var(--shadow);
   border-color: var(--primary-light);
 }
 
-.teacher-header {
+.teacher-card-top {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-}
-
-.teacher-actions {
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
 }
 
-.hours-text {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 500;
+.teacher-name {
+  font-size: 0.95rem;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
-.hours-text-editable {
+.teacher-card-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.teacher-card-icons .btn-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 0.95rem;
+}
+
+.teacher-hours-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.teacher-hours-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.teacher-hours-value {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  flex-shrink: 0;
+}
+
+.teacher-hours-max {
+  font-weight: 600;
+}
+
+.teacher-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.teacher-meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.teacher-meta-item-days {
+  align-items: flex-start;
+}
+
+.teacher-meta-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.teacher-meta-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.teacher-meta-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .teacher-limit-input {
-  width: 45px;
-  padding: 2px 4px;
+  width: 48px;
+  padding: 3px 4px;
   font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 6px;
   background: white;
 }
 
@@ -301,48 +373,63 @@ button { cursor: pointer; font-weight: 600; border: none; letter-spacing: 0.2px;
   outline: none;
 }
 
-.teacher-limits-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.teacher-limit-label {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .teacher-days-off-controls {
   display: flex;
-  gap: 3px;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .teacher-days-off-badges {
   display: flex;
-  gap: 3px;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
 }
 
 .day-off-select {
-  font-size: 0.75rem;
-  padding: 2px;
-  border-radius: 4px;
+  width: 100%;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
   border: 1px solid var(--border-color);
+  background: white;
   outline: none;
+}
+
+.day-off-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
 }
 
 .day-off-badge {
   font-size: 0.75rem;
   color: var(--primary);
   background: var(--primary-light);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
   font-weight: 600;
+}
+
+.btn-constraint {
+  width: 100%;
+  margin-top: 0.15rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-constraint:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary-hover);
 }
 
 .progress-bar-container {

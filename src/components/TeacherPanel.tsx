@@ -85,36 +85,9 @@ export const TeacherPanel: React.FC = () => {
 
             return (
               <div key={teacher.id} className="teacher-card">
-                <div className="teacher-header">
-                  <strong>{teacher.name}</strong>
-                  <div className="teacher-actions">
-                    <button
-                      onClick={() => setConstraintTeacher(teacher)}
-                      className="btn-secondary"
-                      title="הגש בקשת אילוץ למנהלת"
-                      style={{ fontSize: '0.75rem', padding: '2px 6px', height: '24px' }}
-                    >
-                      + אילוץ
-                    </button>
-                    {isManager ? (
-                      <span className="hours-text hours-text-editable">
-                        {currentHours} /
-                        <input
-                          type="number"
-                          min={1}
-                          max={40}
-                          value={teacher.maxHours ?? 26}
-                          onChange={e => updateTeacher(teacher.id, { maxHours: Number(e.target.value) })}
-                          title="מגבלת שעות שבועיות"
-                          className="teacher-limit-input"
-                        />
-                        שעות
-                      </span>
-                    ) : (
-                      <span className="hours-text">
-                        {currentHours} / {teacher.maxHours ?? 26} שעות
-                      </span>
-                    )}
+                <div className="teacher-card-top">
+                  <strong className="teacher-name">{teacher.name}</strong>
+                  <div className="teacher-card-icons">
                     <button
                       onClick={() => setSelectedTeacher(teacher)}
                       className="btn-icon btn-schedule"
@@ -123,7 +96,7 @@ export const TeacherPanel: React.FC = () => {
                       📋
                     </button>
                     {isManager && (
-                      <button 
+                      <button
                         onClick={() => removeTeacher(teacher.id)}
                         className="btn-icon btn-danger"
                         title="מחק מורה"
@@ -133,70 +106,108 @@ export const TeacherPanel: React.FC = () => {
                     )}
                   </div>
                 </div>
-                
-                <div className="progress-bar-container">
-                  <div 
-                    className={`progress-bar ${isOverLimit ? 'over-limit' : ''}`} 
-                    style={{ width: `${percentage}%` }}
-                  ></div>
-                </div>
-                
-                <div className="teacher-limits-row">
-                  <span className="teacher-limit-label">
-                    פרטני: {state.timetableAssignments?.filter(a => a.teacherId === teacher.id && a.subjectId === 'פרטני').length || 0} /
-                    {isManager ? (
-                      <input
-                        type="number"
-                        min={0}
-                        max={10}
-                        value={teacher.tutoringHours ?? 3}
-                        onChange={e => updateTeacher(teacher.id, { tutoringHours: Number(e.target.value) })}
-                        title="מגבלת שעות פרטני"
-                        className="teacher-limit-input"
-                      />
-                    ) : (
-                      <> {teacher.tutoringHours ?? 3}</>
-                    )}
-                  </span>
-                  
-                  {isManager ? (
-                    <div className="teacher-days-off-controls">
-                      <select 
-                        value={(teacher.daysOff && teacher.daysOff[0]) || teacher.dayOff || ''} 
-                        onChange={e => {
-                           const secondDay = (teacher.daysOff && teacher.daysOff[1]) || '';
-                           const newDays = [e.target.value, secondDay].filter(Boolean);
-                           updateTeacher(teacher.id, { daysOff: newDays, dayOff: newDays[0] || '' });
-                        }}
-                        title="יום חופשי 1"
-                        className="day-off-select"
-                      >
-                        <option value="">יום חופש: ללא</option>
-                        {DAYS.map(d => <option key={d} value={d}>חופש ב-{d}</option>)}
-                      </select>
 
-                      <select 
-                        value={(teacher.daysOff && teacher.daysOff[1]) || ''} 
-                        onChange={e => {
-                           const firstDay = (teacher.daysOff && teacher.daysOff[0]) || teacher.dayOff || '';
-                           const newDays = Array.from(new Set([firstDay, e.target.value].filter(Boolean)));
-                           updateTeacher(teacher.id, { daysOff: newDays, dayOff: newDays[0] || '' });
-                        }}
-                        title="יום חופשי 2"
-                        className="day-off-select"
-                      >
-                        <option value="">יום חופש 2: ללא</option>
-                        {DAYS.map(d => <option key={d} value={d}>חופש 2 ב-{d}</option>)}
-                      </select>
-                    </div>
-                  ) : (
-                    <div className="teacher-days-off-badges">
-                    {((teacher.daysOff && teacher.daysOff.length > 0) ? teacher.daysOff : (teacher.dayOff ? [teacher.dayOff] : [])).map(d => (
-                       <div key={d} className="day-off-badge">חופש ב-{d}</div>
-                    ))}
-                    </div>
-                  )}
+                <div className="teacher-hours-block">
+                  <div className="teacher-hours-header">
+                    <span className="teacher-meta-label">שעות שבועיות</span>
+                    <span className="teacher-hours-value">
+                      {currentHours} /
+                      {isManager ? (
+                        <input
+                          type="number"
+                          min={1}
+                          max={40}
+                          value={teacher.maxHours ?? 26}
+                          onChange={e => updateTeacher(teacher.id, { maxHours: Number(e.target.value) })}
+                          title="מגבלת שעות שבועיות"
+                          className="teacher-limit-input"
+                        />
+                      ) : (
+                        <span className="teacher-hours-max">{teacher.maxHours ?? 26}</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="progress-bar-container">
+                    <div
+                      className={`progress-bar ${isOverLimit ? 'over-limit' : ''}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
                 </div>
+
+                <div className="teacher-card-meta">
+                  <div className="teacher-meta-item">
+                    <span className="teacher-meta-label">פרטני</span>
+                    <span className="teacher-meta-value">
+                      {state.timetableAssignments?.filter(a => a.teacherId === teacher.id && a.subjectId === 'פרטני').length || 0} /
+                      {isManager ? (
+                        <input
+                          type="number"
+                          min={0}
+                          max={10}
+                          value={teacher.tutoringHours ?? 3}
+                          onChange={e => updateTeacher(teacher.id, { tutoringHours: Number(e.target.value) })}
+                          title="מגבלת שעות פרטני"
+                          className="teacher-limit-input"
+                        />
+                      ) : (
+                        <span>{teacher.tutoringHours ?? 3}</span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="teacher-meta-item teacher-meta-item-days">
+                    <span className="teacher-meta-label">ימי חופש</span>
+                    {isManager ? (
+                      <div className="teacher-days-off-controls">
+                        <select
+                          value={(teacher.daysOff && teacher.daysOff[0]) || teacher.dayOff || ''}
+                          onChange={e => {
+                            const secondDay = (teacher.daysOff && teacher.daysOff[1]) || '';
+                            const newDays = [e.target.value, secondDay].filter(Boolean);
+                            updateTeacher(teacher.id, { daysOff: newDays, dayOff: newDays[0] || '' });
+                          }}
+                          title="יום חופשי 1"
+                          className="day-off-select"
+                        >
+                          <option value="">ללא</option>
+                          {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                        <select
+                          value={(teacher.daysOff && teacher.daysOff[1]) || ''}
+                          onChange={e => {
+                            const firstDay = (teacher.daysOff && teacher.daysOff[0]) || teacher.dayOff || '';
+                            const newDays = Array.from(new Set([firstDay, e.target.value].filter(Boolean)));
+                            updateTeacher(teacher.id, { daysOff: newDays, dayOff: newDays[0] || '' });
+                          }}
+                          title="יום חופשי 2"
+                          className="day-off-select"
+                        >
+                          <option value="">ללא</option>
+                          {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="teacher-days-off-badges">
+                        {((teacher.daysOff && teacher.daysOff.length > 0) ? teacher.daysOff : (teacher.dayOff ? [teacher.dayOff] : [])).length > 0 ? (
+                          ((teacher.daysOff && teacher.daysOff.length > 0) ? teacher.daysOff : (teacher.dayOff ? [teacher.dayOff] : [])).map(d => (
+                            <span key={d} className="day-off-badge">{d}</span>
+                          ))
+                        ) : (
+                          <span className="teacher-meta-empty">ללא</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setConstraintTeacher(teacher)}
+                  className="btn-constraint"
+                  title="הגש בקשת אילוץ למנהלת"
+                >
+                  + אילוץ
+                </button>
               </div>
             );
           })
